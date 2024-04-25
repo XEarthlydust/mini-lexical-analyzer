@@ -63,25 +63,25 @@ impl Regexs {
 
     }
 
-    pub fn matching(&self, token: &str) -> WordType {
+    pub fn matching(&self, token: &str) -> &WordType {
         if self.keyword.is_match(&token) {
-            WordType::Keyword
+            &WordType::Keyword
         } else if self.operator.is_match(&token) {
-            WordType::Operator
+            &WordType::Operator
         } else if self.string_literal.is_match(&token) {
-            WordType::Literal(LiteralType::StringRaw)
+            &WordType::Literal(LiteralType::StringRaw)
         } else if self.char_literal.is_match(&token) {
-            WordType::Literal(LiteralType::CharRaw)
+            &WordType::Literal(LiteralType::CharRaw)
         } else if self.integer_literal.is_match(&token) {
-            WordType::Literal(LiteralType::Integer)
+            &WordType::Literal(LiteralType::Integer)
         } else if self.float_literal.is_match(&token) {
-            WordType::Literal(LiteralType::Float)
+            &WordType::Literal(LiteralType::Float)
         } else if self.delimiter.is_match(&token) {
-            WordType::Delimiter
+            &WordType::Delimiter
         } else if self.identifier.is_match(&token) {
-            WordType::Identifier
+            &WordType::Identifier
         } else {
-            WordType::Notfound
+            &WordType::Notfound
         }
     }
 }

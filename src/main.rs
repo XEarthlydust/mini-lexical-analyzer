@@ -28,11 +28,11 @@ fn main() {
         let mut line_without_comment = line;
         if in_multiline_comment {
             if let Some(end_index) = line.find("*/") {
-                result_println(WordType::Comments, "Multi End");
+                result_println(&WordType::Comments, "Multi End");
                 in_multiline_comment = false;
                 line_without_comment = &line[end_index + 2..];
             } else {
-                result_println(WordType::Comments, "Multi Line");
+                result_println(&WordType::Comments, "Multi Line");
                 continue;
             }
         }
@@ -41,18 +41,18 @@ fn main() {
         if let Some(start_index) = line.find("/*") {
             if let Some(end_index) = line.find("*/") {
                 if end_index > start_index {
-                    result_println(WordType::Comments, "Multi Start&End");
+                    result_println(&WordType::Comments, "Multi Start&End");
                     continue;
                 }
             }
-            result_println(WordType::Comments, "Multi Start");
+            result_println(&WordType::Comments, "Multi Start");
             in_multiline_comment = true;
             continue;
         }
 
         // 移除单行注释
         let line_without_comment = if let Some(index) = line_without_comment.find("//") {
-            result_println(WordType::Comments, "Single Line");
+            result_println(&WordType::Comments, "Single Line");
             &line_without_comment[..index]
         } else {
             line_without_comment
@@ -79,14 +79,10 @@ fn main() {
         }
 
         // 逐个匹配单词、界符和操作符
+        let regexs = Regexs::init();
         for token in tokens {
-            let regexs = Regexs::init();
             let word_type = regexs.matching(&token);
             result_println(word_type, &token)
         }
     }
 }
-
-
-
-
