@@ -5,9 +5,9 @@ use std::fs;
 
 use clap::Parser;
 use tools::results::result_println;
-use tools::words::{is_delimiter, is_operator, WordType};
+use tools::words::{is_delimiter, is_operator};
 
-use crate::tools::lines::{multilines_comment_checkend, multilines_comment_start};
+use crate::tools::lines::{multilines_comment_checkend, multilines_comment_start, single_comment_check};
 use crate::tools::words::Regexs;
 
 #[derive(Parser)]
@@ -32,7 +32,9 @@ fn main() {
     let in_multiline_comment = Cell::new(false);
 
     for (el, line) in source_code.lines().enumerate() {
+
         println!("{}", { el });
+
         let line_without_comment = Cell::new(line);
 
         if multilines_comment_checkend(&line_without_comment, &in_multiline_comment)
@@ -41,18 +43,20 @@ fn main() {
             continue;
         };
 
-        // 过滤单行注释
-        let line_without_comment = if let Some(index) = line_without_comment.get().find("//") {
-            result_println(&WordType::Comments, "Single Line");
-            &line_without_comment.get()[..index]
-        } else {
-            line_without_comment.get()
-        };
+        single_comment_check(&line_without_comment);
+
+        // // 过滤单行注释
+        // let line_without_comment = if let Some(index) = line_without_comment.get().find("//") {
+        //     result_println(&WordType::Comments, "Single Line");
+        //     &line_without_comment.get()[..index]
+        // } else {
+        //     line_without_comment.get()
+        // };
 
         // 拆分代码行成单词和界符
         let mut tokens = Vec::new();
         let mut token = String::new();
-        for c in line_without_comment.chars() {
+        for c in line_without_comment.get().chars() {
             if c.is_whitespace() || is_delimiter(c) || is_operator(c) {
                 if !token.is_empty() {
                     tokens.push(token.clone());

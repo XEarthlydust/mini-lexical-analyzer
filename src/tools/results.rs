@@ -43,7 +43,7 @@ pub fn result_println(word_type: &WordType, token: &str) {
 // 拆分字符串&单字符的界符
 pub fn char_string_outdelimiter(word_type: &WordType, token: &str) {
     let token = String::from(token);
-    result_println(&WordType::Keyword, &token[..0]);
+    result_println(&WordType::Delimiter, &token[..0]);
     if token.len() > 2 {
         match word_type {
             &WordType::Literal(LiteralType::CharRaw) => {
@@ -66,5 +66,5 @@ pub fn char_string_outdelimiter(word_type: &WordType, token: &str) {
             &String::from("Null Character String!"),
         );
     }
-    result_println(&WordType::Keyword, &token[token.len()..]);
+    result_println(&WordType::Delimiter, &token[token.len()..]);
 }

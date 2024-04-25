@@ -34,3 +34,12 @@ pub fn multilines_comment_checkend(
     }
     return false;
 }
+
+pub fn single_comment_check (line_without_comment: &Cell<&str>){
+    line_without_comment.set(if let Some(index) = line_without_comment.get().find("//") {
+        result_println(&WordType::Comments, "Single Line");
+        &line_without_comment.get()[..index]
+    } else {
+        line_without_comment.get()
+    });
+}
