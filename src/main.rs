@@ -1,6 +1,11 @@
 use regex::Regex;
 use std::fs;
 
+mod tools;
+use tools::words::{WordType, LiteralType};
+use tools::results::{result_println, char_string_outdelimiter};
+
+
 fn main() {
     // 读取源文件
     let source_code = match fs::read_to_string("main.c") {
@@ -21,7 +26,7 @@ fn main() {
     let delimiter_pattern = r"[()\[\]{};,]";
     let operator_pattern = r"[\+\-\*/%=><!&\|\^]";
 
-    // 编译正则表达式
+    // 生成正则表达式
     let keyword_regex = Regex::new(keyword_pattern).unwrap();
     let identifier_regex = Regex::new(identifier_pattern).unwrap();
     let string_literal_regex = Regex::new(string_literal_pattern).unwrap();
@@ -33,19 +38,36 @@ fn main() {
 
     // 逐行分析源代码
     let mut in_multiline_comment = false;
-    for line in source_code.lines() {
+    for (el, line) in source_code.lines().enumerate() {
+        println!("{}", { el });
         let mut line_without_comment = line;
         if in_multiline_comment {
             if let Some(end_index) = line.find("*/") {
+                result_println(&WordType::Comments, "Multi End");
                 in_multiline_comment = false;
                 line_without_comment = &line[end_index + 2..];
             } else {
+                result_println(&WordType::Comments, "Multi Line");
                 continue;
             }
         }
 
+        // 多行注释检测
+        if let Some(start_index) = line.find("/*") {
+            if let Some(end_index) = line.find("*/") {
+                if end_index > start_index {
+                    result_println(&WordType::Comments, "Multi Start&End");
+                    continue;
+                }
+            }
+            result_println(&WordType::Comments, "Multi Start");
+            in_multiline_comment = true;
+            continue;
+        }
+
         // 移除单行注释
         let line_without_comment = if let Some(index) = line_without_comment.find("//") {
+            result_println(&WordType::Comments, "Single Line");
             &line_without_comment[..index]
         } else {
             line_without_comment
@@ -71,43 +93,36 @@ fn main() {
             tokens.push(token);
         }
 
-        // 多行注释检测
-        if let Some(start_index) = line.find("/*") {
-            if let Some(end_index) = line.find("*/") {
-                if end_index > start_index {
-                    continue;
-                }
-            }
-            in_multiline_comment = true;
-        }
-
         // 逐个匹配单词、界符和操作符
         for token in tokens {
             if keyword_regex.is_match(&token) {
-                println!("Keyword: {}", token);
+                result_println(&WordType::Keyword, &token)
             } else if operator_regex.is_match(&token) {
-                println!("Operator: {}", token);
+                result_println(&WordType::Operator, &token)
             } else if string_literal_regex.is_match(&token) {
-                println!("String Literal: {}", token);
+                char_string_outdelimiter(&WordType::Literal(LiteralType::String), &token)
             } else if char_literal_regex.is_match(&token) {
-                println!("Char Literal: {}", token);
+                char_string_outdelimiter(&WordType::Literal(LiteralType::Char), &token)
             } else if integer_literal_regex.is_match(&token) {
-                println!("Integer Literal: {}", token);
+                result_println(&WordType::Literal(LiteralType::Integer), &token)
             } else if float_literal_regex.is_match(&token) {
-                println!("Float Literal: {}", token);
+                result_println(&WordType::Literal(LiteralType::Float), &token)
             } else if delimiter_regex.is_match(&token) {
-                println!("Delimiter: {}", token);
+                result_println(&WordType::Delimiter, &token)
             } else if identifier_regex.is_match(&token) {
-                println!("Identifier: {}", token);
+                result_println(&WordType::Identifier, &token)
             }
         }
     }
 }
 
 fn is_delimiter(c: char) -> bool {
+     
     "()[]{};,.".contains(c)
 }
 
 fn is_operator(c: char) -> bool {
     "+-*/%=><!&|^".contains(c)
 }
+
+

@@ -1,8 +1,13 @@
 int main(int argc, char const *argv[])
 {
-    /* code */
+    /* code
+    
+    aaaa
+     */
     ///aaa
     int a = 1;
     char b = 'a';
+    char ab[] = "aaaa";
+    float f1 = 1.11;
     return 0;
 }
