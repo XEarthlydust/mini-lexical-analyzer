@@ -1,6 +1,6 @@
 # workspace = { members = [ "results","words"] }
 [package]
-name = "Mini-Lexical-Analyzer"
+name = "mini-lexical-analyzer"
 version = "0.1.0"
 edition = "2021"
 

@@ -1,11 +1,13 @@
 mod tools;
 
+use std::cell::Cell;
 use std::fs;
 
 use clap::Parser;
 use tools::results::result_println;
 use tools::words::{is_delimiter, is_operator, WordType};
 
+use crate::tools::lines::{multilines_comment_checkend, multilines_comment_start};
 use crate::tools::words::Regexs;
 
 #[derive(Parser)]
@@ -27,40 +29,24 @@ fn main() {
     };
 
     // 逐行分析源代码
-    let mut in_multiline_comment = false;
+    let in_multiline_comment = Cell::new(false);
+
     for (el, line) in source_code.lines().enumerate() {
         println!("{}", { el });
-        let mut line_without_comment = line;
-        if in_multiline_comment {
-            if let Some(end_index) = line.find("*/") {
-                result_println(&WordType::Comments, "Multi End");
-                in_multiline_comment = false;
-                line_without_comment = &line[end_index + 2..];
-            } else {
-                result_println(&WordType::Comments, "Multi Line");
-                continue;
-            }
-        }
+        let line_without_comment = Cell::new(line);
 
-        // 多行注释检测
-        if let Some(start_index) = line.find("/*") {
-            if let Some(end_index) = line.find("*/") {
-                if end_index > start_index {
-                    result_println(&WordType::Comments, "Multi Start&End");
-                    continue;
-                }
-            }
-            result_println(&WordType::Comments, "Multi Start");
-            in_multiline_comment = true;
+        if multilines_comment_checkend(&line_without_comment, &in_multiline_comment)
+            || multilines_comment_start(line, &in_multiline_comment)
+        {
             continue;
-        }
+        };
 
-        // 移除单行注释
-        let line_without_comment = if let Some(index) = line_without_comment.find("//") {
+        // 过滤单行注释
+        let line_without_comment = if let Some(index) = line_without_comment.get().find("//") {
             result_println(&WordType::Comments, "Single Line");
-            &line_without_comment[..index]
+            &line_without_comment.get()[..index]
         } else {
-            line_without_comment
+            line_without_comment.get()
         };
 
         // 拆分代码行成单词和界符

@@ -1,5 +1,3 @@
-use std::backtrace;
-
 use regex::Regex;
 
 pub enum WordType {
@@ -30,14 +28,6 @@ pub fn is_operator(c: char) -> bool {
 }
 
 pub struct Regexs<'a> {
-    // keyword: Regex,
-    // identifier: Regex,
-    // string_literal: Regex,
-    // char_literal: Regex,
-    // integer_literal: Regex,
-    // float_literal: Regex,
-    // delimiter: Regex,
-    // operator: Regex,
     regex_vec: Vec<(Regex, &'a WordType)>,
 }
 
