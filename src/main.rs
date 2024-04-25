@@ -1,9 +1,11 @@
-use regex::Regex;
+mod tools;
+
 use std::fs;
 
-mod tools;
-use tools::words::{WordType, LiteralType};
-use tools::results::{result_println, char_string_outdelimiter};
+use tools::words::{WordType, is_delimiter, is_operator};
+use tools::results::{result_println};
+
+use crate::tools::words::Regexs;
 
 
 fn main() {
@@ -17,24 +19,7 @@ fn main() {
     };
 
     // 定义正则表达式模式
-    let keyword_pattern = r"\b(auto|break|case|char|const|continue|default|do|double|else|enum|extern|float|for|goto|if|int|long|register|return|short|signed|sizeof|static|struct|switch|typedef|union|unsigned|void|volatile|while)\b";
-    let identifier_pattern = r"[a-zA-Z_]\w*";
-    let string_literal_pattern = r#""(?:\\.|[^\\"])*""#;
-    let char_literal_pattern = r"'(?:\\.|[^\\'])'";
-    let integer_literal_pattern = r"\b\d+\b";
-    let float_literal_pattern = r"\b\d+\.\d+\b";
-    let delimiter_pattern = r"[()\[\]{};,]";
-    let operator_pattern = r"[\+\-\*/%=><!&\|\^]";
-
-    // 生成正则表达式
-    let keyword_regex = Regex::new(keyword_pattern).unwrap();
-    let identifier_regex = Regex::new(identifier_pattern).unwrap();
-    let string_literal_regex = Regex::new(string_literal_pattern).unwrap();
-    let char_literal_regex = Regex::new(char_literal_pattern).unwrap();
-    let integer_literal_regex = Regex::new(integer_literal_pattern).unwrap();
-    let float_literal_regex = Regex::new(float_literal_pattern).unwrap();
-    let delimiter_regex = Regex::new(delimiter_pattern).unwrap();
-    let operator_regex = Regex::new(operator_pattern).unwrap();
+    
 
     // 逐行分析源代码
     let mut in_multiline_comment = false;
@@ -43,11 +28,11 @@ fn main() {
         let mut line_without_comment = line;
         if in_multiline_comment {
             if let Some(end_index) = line.find("*/") {
-                result_println(&WordType::Comments, "Multi End");
+                result_println(WordType::Comments, "Multi End");
                 in_multiline_comment = false;
                 line_without_comment = &line[end_index + 2..];
             } else {
-                result_println(&WordType::Comments, "Multi Line");
+                result_println(WordType::Comments, "Multi Line");
                 continue;
             }
         }
@@ -56,18 +41,18 @@ fn main() {
         if let Some(start_index) = line.find("/*") {
             if let Some(end_index) = line.find("*/") {
                 if end_index > start_index {
-                    result_println(&WordType::Comments, "Multi Start&End");
+                    result_println(WordType::Comments, "Multi Start&End");
                     continue;
                 }
             }
-            result_println(&WordType::Comments, "Multi Start");
+            result_println(WordType::Comments, "Multi Start");
             in_multiline_comment = true;
             continue;
         }
 
         // 移除单行注释
         let line_without_comment = if let Some(index) = line_without_comment.find("//") {
-            result_println(&WordType::Comments, "Single Line");
+            result_println(WordType::Comments, "Single Line");
             &line_without_comment[..index]
         } else {
             line_without_comment
@@ -95,34 +80,13 @@ fn main() {
 
         // 逐个匹配单词、界符和操作符
         for token in tokens {
-            if keyword_regex.is_match(&token) {
-                result_println(&WordType::Keyword, &token)
-            } else if operator_regex.is_match(&token) {
-                result_println(&WordType::Operator, &token)
-            } else if string_literal_regex.is_match(&token) {
-                char_string_outdelimiter(&WordType::Literal(LiteralType::String), &token)
-            } else if char_literal_regex.is_match(&token) {
-                char_string_outdelimiter(&WordType::Literal(LiteralType::Char), &token)
-            } else if integer_literal_regex.is_match(&token) {
-                result_println(&WordType::Literal(LiteralType::Integer), &token)
-            } else if float_literal_regex.is_match(&token) {
-                result_println(&WordType::Literal(LiteralType::Float), &token)
-            } else if delimiter_regex.is_match(&token) {
-                result_println(&WordType::Delimiter, &token)
-            } else if identifier_regex.is_match(&token) {
-                result_println(&WordType::Identifier, &token)
-            }
+            let regexs = Regexs::init();
+            let word_type = regexs.matching(&token);
+            result_println(word_type, &token)
         }
     }
 }
 
-fn is_delimiter(c: char) -> bool {
-     
-    "()[]{};,.".contains(c)
-}
 
-fn is_operator(c: char) -> bool {
-    "+-*/%=><!&|^".contains(c)
-}
 
 
