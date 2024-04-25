@@ -2,24 +2,29 @@ mod tools;
 
 use std::fs;
 
-use tools::words::{WordType, is_delimiter, is_operator};
-use tools::results::{result_println};
+use clap::Parser;
+use tools::results::result_println;
+use tools::words::{is_delimiter, is_operator, WordType};
 
 use crate::tools::words::Regexs;
 
+#[derive(Parser)]
+struct Args {
+    /// The file path of *.c source.
+    file: String,
+}
 
 fn main() {
+    let args = Args::parse();
+
     // 读取源文件
-    let source_code = match fs::read_to_string("main.c") {
+    let source_code = match fs::read_to_string(args.file) {
         Ok(content) => content,
         Err(_) => {
             eprintln!("Failed to read the source file.");
             return;
         }
     };
-
-    // 定义正则表达式模式
-    
 
     // 逐行分析源代码
     let mut in_multiline_comment = false;

@@ -1,4 +1,4 @@
-use super::words::{WordType, LiteralType};
+use super::words::{LiteralType, WordType};
 
 // 辅助格式化结果输出
 pub fn result_println(word_type: &WordType, token: &str) {
@@ -47,15 +47,24 @@ pub fn char_string_outdelimiter(word_type: &WordType, token: &str) {
     if token.len() > 2 {
         match word_type {
             &WordType::Literal(LiteralType::CharRaw) => {
-                result_println(&WordType::Literal(LiteralType::Char), &token[1..token.len() - 1]);
+                result_println(
+                    &WordType::Literal(LiteralType::Char),
+                    &token[1..token.len() - 1],
+                );
             }
             &WordType::Literal(LiteralType::StringRaw) => {
-                result_println(&WordType::Literal(LiteralType::String), &token[1..token.len() - 1]);
+                result_println(
+                    &WordType::Literal(LiteralType::String),
+                    &token[1..token.len() - 1],
+                );
             }
-            _ => panic!("char_string_outdelimiter() was used illegal")
+            _ => panic!("char_string_outdelimiter() was used illegal"),
         }
     } else {
-        result_println(&WordType::Literal(LiteralType::String), &String::from("Null Character String!"));
+        result_println(
+            &WordType::Literal(LiteralType::String),
+            &String::from("Null Character String!"),
+        );
     }
     result_println(&WordType::Keyword, &token[token.len()..]);
 }
