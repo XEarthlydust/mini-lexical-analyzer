@@ -1,5 +1,6 @@
 use std::cell::Cell;
 
+use super::words::{is_delimiter, is_operator};
 use super::{results::result_println, words::WordType};
 
 pub fn multilines_comment_start(line: &str, in_multiline_comment: &Cell<bool>) -> bool {
@@ -35,11 +36,34 @@ pub fn multilines_comment_checkend(
     return false;
 }
 
-pub fn single_comment_check (line_without_comment: &Cell<&str>){
+pub fn single_comment_check(line_without_comment: &Cell<&str>) {
     line_without_comment.set(if let Some(index) = line_without_comment.get().find("//") {
         result_println(&WordType::Comments, "Single Line");
         &line_without_comment.get()[..index]
     } else {
         line_without_comment.get()
     });
+}
+
+// 拆分代码行成单词和界符
+pub fn cut_lines(line_without_comment: &Cell<&str>) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut token = String::new();
+    for c in line_without_comment.get().chars() {
+        if c.is_whitespace() || is_delimiter(c) || is_operator(c) {
+            if !token.is_empty() {
+                tokens.push(token.clone());
+                token.clear();
+            }
+            if is_delimiter(c) || is_operator(c) {
+                tokens.push(c.to_string());
+            }
+        } else {
+            token.push(c);
+        }
+    }
+    if !token.is_empty() {
+        tokens.push(token);
+    }
+    return tokens;
 }

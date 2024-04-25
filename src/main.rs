@@ -2,13 +2,13 @@ mod tools;
 
 use std::cell::Cell;
 use std::fs;
-
 use clap::Parser;
-use tools::results::result_println;
-use tools::words::{is_delimiter, is_operator};
 
-use crate::tools::lines::{multilines_comment_checkend, multilines_comment_start, single_comment_check};
-use crate::tools::words::Regexs;
+use tools::results::result_println;
+use tools::lines::{
+    cut_lines, multilines_comment_checkend, multilines_comment_start, single_comment_check,
+};
+use tools::words::Regexs;
 
 #[derive(Parser)]
 struct Args {
@@ -17,7 +17,9 @@ struct Args {
 }
 
 fn main() {
+    let regexs: Regexs = Regexs::new();
     let args = Args::parse();
+    let in_multiline_comment = Cell::new(false);
 
     // 读取源文件
     let source_code = match fs::read_to_string(args.file) {
@@ -27,54 +29,23 @@ fn main() {
             return;
         }
     };
-
-    // 逐行分析源代码
-    let in_multiline_comment = Cell::new(false);
-
+    
+    // 按行读取
     for (el, line) in source_code.lines().enumerate() {
-
-        println!("{}", { el });
+        println!("{}", { el+1 });
 
         let line_without_comment = Cell::new(line);
-
+        // 检查&跳过 多行注释
         if multilines_comment_checkend(&line_without_comment, &in_multiline_comment)
             || multilines_comment_start(line, &in_multiline_comment)
         {
             continue;
         };
-
+        // 检查&跳过 单行注释
         single_comment_check(&line_without_comment);
-
-        // // 过滤单行注释
-        // let line_without_comment = if let Some(index) = line_without_comment.get().find("//") {
-        //     result_println(&WordType::Comments, "Single Line");
-        //     &line_without_comment.get()[..index]
-        // } else {
-        //     line_without_comment.get()
-        // };
-
-        // 拆分代码行成单词和界符
-        let mut tokens = Vec::new();
-        let mut token = String::new();
-        for c in line_without_comment.get().chars() {
-            if c.is_whitespace() || is_delimiter(c) || is_operator(c) {
-                if !token.is_empty() {
-                    tokens.push(token.clone());
-                    token.clear();
-                }
-                if is_delimiter(c) || is_operator(c) {
-                    tokens.push(c.to_string());
-                }
-            } else {
-                token.push(c);
-            }
-        }
-        if !token.is_empty() {
-            tokens.push(token);
-        }
-
-        // 逐个匹配单词、界符和操作符
-        let regexs = Regexs::init();
+        // 按 界符&操作符 划分tokens
+        let tokens = cut_lines(&line_without_comment);
+        // 正则&输出
         for token in tokens {
             let word_type = regexs.matching(&token);
             result_println(word_type, &token)
