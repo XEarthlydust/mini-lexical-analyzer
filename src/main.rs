@@ -1,13 +1,13 @@
 mod tools;
 
+use clap::Parser;
 use std::cell::Cell;
 use std::fs;
-use clap::Parser;
 
-use tools::results::result_println;
 use tools::lines::{
     cut_lines, multilines_comment_checkend, multilines_comment_start, single_comment_check,
 };
+use tools::results::result_println;
 use tools::words::Regexs;
 
 #[derive(Parser)]
@@ -29,10 +29,10 @@ fn main() {
             return;
         }
     };
-    
+
     // 按行读取
     for (el, line) in source_code.lines().enumerate() {
-        println!("{}", { el+1 });
+        println!("{}", { el + 1 });
 
         let line_without_comment = Cell::new(line);
         // 检查&跳过 多行注释
