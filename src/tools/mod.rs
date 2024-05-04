@@ -1,3 +1,3 @@
-pub mod words;
-pub mod results;
 pub mod lines;
+pub mod results;
+pub mod words;
