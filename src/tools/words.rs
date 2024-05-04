@@ -67,9 +67,9 @@ impl<'a> Regexs<'a> {
     }
 
     pub fn matching(&self, token: &str) -> &WordType {
-        for (c, d) in &self.regex_vec {
-            if c.is_match(&token) {
-                return d;
+        for (regex, world_type) in &self.regex_vec {
+            if regex.is_match(&token) {
+                return world_type;
             }
         }
         &WordType::Notfound
