@@ -37,7 +37,7 @@ fn main() {
         let line_without_comment = Cell::new(line);
         // 检查&跳过 多行注释
         if multilines_comment_checkend(&line_without_comment, &in_multiline_comment)
-            || multilines_comment_start(line, &in_multiline_comment)
+            || multilines_comment_start(&line_without_comment, &in_multiline_comment)
         {
             continue;
         };

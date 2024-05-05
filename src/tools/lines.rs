@@ -3,12 +3,16 @@ use std::cell::Cell;
 use super::words::{is_delimiter, is_operator};
 use super::{results::result_println, words::WordType};
 
-pub fn multilines_comment_start(line: &str, in_multiline_comment: &Cell<bool>) -> bool {
-    if let Some(start_index) = line.find("/*") {
-        if let Some(end_index) = line.rfind("*/") {
+pub fn multilines_comment_start(
+    line_without_comment: &Cell<&str>,
+    in_multiline_comment: &Cell<bool>,
+) -> bool {
+    if let Some(start_index) = line_without_comment.get().find("/*") {
+        if let Some(end_index) = line_without_comment.get().rfind("*/") {
             if end_index > start_index {
                 result_println(&WordType::Comments, "Multi Start&End");
-                return true;
+                line_without_comment.set(&line_without_comment.get()[end_index + 2..]);
+                return false;
             }
         }
         result_println(&WordType::Comments, "Multi Start");
